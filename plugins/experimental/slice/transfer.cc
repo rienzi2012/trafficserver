@@ -29,6 +29,9 @@ int64_t transfer_content_bytes(Data *const data) // , char const * const fstr)
       int64_t const avail = TSIOBufferReaderAvail(data->m_upstream.m_read.m_reader);
       TSIOBufferReaderConsume(data->m_upstream.m_read.m_reader, avail);
       consumed += avail;
+      if (0 < consumed) {
+        TSVIOReenable(data->m_upstream.m_read.m_vio); //prevent memory leak
+      }
     }
   } else // if (data->m_dnstream.m_write.isOpen())
   {
@@ -70,6 +73,7 @@ int64_t transfer_content_bytes(Data *const data) // , char const * const fstr)
 
       if (0 < consumed) {
         TSVIOReenable(data->m_dnstream.m_write.m_vio);
+        TSVIOReenable(data->m_upstream.m_read.m_vio); //prevent memory leak
       }
     }
   }
@@ -98,6 +102,10 @@ transfer_all_bytes(Data *const data)
         TSIOBufferReaderConsume(data->m_upstream.m_read.m_reader, copied);
         consumed = copied;
       }
+    }
+
+    if (0 < consumed) {
+      TSVIOReenable(data->m_upstream.m_read.m_vio); //prevent memory leak
     }
   }
 
